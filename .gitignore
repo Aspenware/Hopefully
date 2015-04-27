@@ -10,3 +10,4 @@ TestResults/
 *.psess
 *.vsp
 packages/
+*.nupkg

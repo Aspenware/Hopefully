@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>Hopefully</id>
+    <version>1.0.0</version>
+    <authors>Aspenware</authors>
+    <owners>Aspenware</owners>
+    <licenseUrl>http://github.com/Aspenware/Hopefully/blob/master/LICENSE</licenseUrl>
+    <projectUrl>http://github.com/Aspenware/Hopefully</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Hopefully is a simple framework to retry procedures until they work.</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright Aspenware 2015</copyright>
+  </metadata>
+   <files>
+     <file src="Hopefully/bin/Release/Hopefully.dll" target="lib" />
+     <file src="Hopefully/bin/Release/Hopefully.xml" target="lib" />
+   </files>
+</package>
