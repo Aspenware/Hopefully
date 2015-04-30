@@ -1,5 +1,6 @@
 ﻿// TODO: Async support
 using System;
+using System.Threading.Tasks;
 
 namespace Hopefully
 {
@@ -24,11 +25,34 @@ namespace Hopefully
         /// </summary>
         /// <param name="what">The procedure to attempt.</param>
         /// <param name="attempts">The number of attempts before giving up.</param>
+        public static async Task RetryAsync(Action what, int attempts = 5)
+        {
+            int _;
+            await Task.Run(() => Retry(what, out _, attempts));
+        }
+
+        /// <summary>
+        /// Retries a procedure up to a given number of attempts.
+        /// </summary>
+        /// <param name="what">The procedure to attempt.</param>
+        /// <param name="attempts">The number of attempts before giving up.</param>
         /// <typeparam name="T">The return type of the procedure.</typeparam>
         public static T Retry<T>(Func<T> what, int attempts = 5)
         {
             int _;
             return Retry<T>(what, out _, attempts);
+        }
+
+        /// <summary>
+        /// Retries a procedure up to a given number of attempts.
+        /// </summary>
+        /// <param name="what">The procedure to attempt.</param>
+        /// <param name="attempts">The number of attempts before giving up.</param>
+        /// <typeparam name="T">The return type of the procedure.</typeparam>
+        public static async Task<T> RetryAsync<T>(Func<T> what, int attempts = 5)
+        {
+            int _;
+            return await Task.Run<T>(() => Retry(what, out _, attempts));
         }
 
         /// <summary>

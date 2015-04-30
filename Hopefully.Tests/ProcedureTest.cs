@@ -1,6 +1,7 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Threading.Tasks;
 using Hopefully;
-using System;
+using NUnit.Framework;
 
 namespace Hopefully.Tests
 {
@@ -70,6 +71,26 @@ namespace Hopefully.Tests
         }
 
         [Test]
+        public void TestSuccessfulAsyncProcedure()
+        {
+            var proc = new UnreliableProcedure(3);
+            Assert.DoesNotThrow(async () =>
+            {
+                await Procedure.RetryAsync(proc.DoWork, attempts: 5);
+            });
+        }
+
+        [Test]
+        public void TestFailedAsyncProcedure()
+        {
+            var proc = new UnreliableProcedure(10);
+            Assert.Throws(typeof(Exception), async () =>
+            {
+                await Procedure.RetryAsync(proc.DoWork, attempts: 5);
+            });
+        }
+
+        [Test]
         public void TestSuccessfulProcedureWithReturn()
         {
             var proc = new UnreliableProcedure(0);
@@ -107,6 +128,40 @@ namespace Hopefully.Tests
             Assert.AreEqual(3, failedAttempts);
             Assert.AreEqual("success", returned);
         }
+
+        [Test]
+        public void TestSuccessfulAsyncProcedureWithReturn()
+        {
+            var proc = new UnreliableProcedure(0);
+            string returned = null;
+
+            Assert.DoesNotThrow(() =>
+            {
+                returned = Task.Run<string>(async () => 
+                {
+                    return await Procedure.RetryAsync<string>(() => proc.DoWorkAndReturn(), attempts: 5);
+                }).Result;
+            });
+
+            Assert.AreEqual("success", returned);
+        }
+
+        [Test]
+        public void TestFailedAsyncProcedureWithReturn()
+        {
+            var proc = new UnreliableProcedure(10);
+            string returned = null;
+
+            var exception = Assert.Throws<AggregateException>(() =>
+            {
+                returned = Task.Run<string>(async () =>
+                {
+                    return await Procedure.RetryAsync<string>(() => proc.DoWorkAndReturn(), attempts: 5);
+                }).Result;
+            });
+
+            Assert.AreEqual("Procedure failed", exception.InnerException.Message);
+            Assert.IsNull(returned);
+        }
     }
 }
-
