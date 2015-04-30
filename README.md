@@ -13,12 +13,17 @@ think of a good way to extend it, pull requests are welcome.
 
 ## Usage
 
-Install hopefully from NuGet, and then you can use it like so:
+Install Hopefully from NuGet, and then you can use it like so:
 
-    var client = new HttpClient();
-    var result = Procedure.Retry<string>(() =>
-    {
-        return client.DownloadString("http://unreliable.service/example.json");
-    }, attempts = 10);
+```csharp
+var client = new HttpClient();
+var result = Procedure.Retry<string>(() =>
+{
+    return client.DownloadString("http://unreliable.service/example.json");
+}, attempts = 10);
+```
+
+It will swallow exceptions until it hits the number of attempts you've requested,
+and then throw normally.
 
 That's it, have fun.

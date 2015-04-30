@@ -1,0 +1,10 @@
+{
+	"version": "0.1.0",
+	"command": "xbuild", 
+	"showOutput": "silent",
+	"windows": {
+		"command": "msbuild.exe"
+	},
+	"args": [],
+	"problemMatcher": "$msCompile"
+}
