@@ -1,4 +1,4 @@
-# Hopefully
+# Hopefully ![](https://api.travis-ci.org/Aspenware/Hopefully.svg)
 
 "Hopefully it works this time"
 
