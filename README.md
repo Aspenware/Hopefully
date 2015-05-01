@@ -20,7 +20,7 @@ var client = new HttpClient();
 var result = Procedure.Retry<string>(() =>
 {
     return client.DownloadString("http://unreliable.service/example.json");
-}, attempts = 10);
+}, attempts: 10);
 ```
 
 It will swallow exceptions until it hits the number of attempts you've requested,
