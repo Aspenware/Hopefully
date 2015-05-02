@@ -51,7 +51,7 @@ namespace Hopefully.Tests
         {
             var proc = new UnreliableProcedure(10);
             int failedAttempts = -1;
-            Assert.Throws(typeof(ApplicationException), () =>
+            Assert.Throws(typeof(Exception), () =>
             {
                 Procedure.Retry(() => proc.DoWork(), out failedAttempts, attempts: 5);
             });
@@ -65,7 +65,7 @@ namespace Hopefully.Tests
             int failedAttempts = -1;
             int milliSecondsToWait = 50;
             var startTime = DateTime.Now;
-            Assert.Throws(typeof (ApplicationException), () =>
+            Assert.Throws(typeof (Exception), () =>
             {
                 Procedure.Retry(() => proc.DoWork(), out failedAttempts, attempts: 5, wait: new TimeSpan(0, 0, 0, 0, milliSecondsToWait));
             });
@@ -100,7 +100,7 @@ namespace Hopefully.Tests
         public void TestFailedAsyncProcedure()
         {
             var proc = new UnreliableProcedure(10);
-            Assert.Throws(typeof(ApplicationException), async () =>
+            Assert.Throws(typeof(Exception), async () =>
             {
                 await Procedure.RetryAsync(proc.DoWork, attempts: 5);
             });
@@ -123,7 +123,7 @@ namespace Hopefully.Tests
             var proc = new UnreliableProcedure(10);
             int failedAttempts = -1;
             string returned = null;
-            Assert.Throws(typeof(ApplicationException), () =>
+            Assert.Throws(typeof(Exception), () =>
             {
                 returned = Procedure.Retry<string>(() => proc.DoWorkAndReturn(), out failedAttempts, attempts: 5);
             });
@@ -176,7 +176,7 @@ namespace Hopefully.Tests
                 }).Result;
             });
 
-            Assert.AreEqual("Procedure failed", exception.InnerException.InnerException.Message);
+            Assert.AreEqual("Procedure failed", exception.InnerException.Message);
             Assert.IsNull(returned);
         }
 

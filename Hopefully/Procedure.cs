@@ -9,8 +9,6 @@ namespace Hopefully
     /// </summary>
     public static class Procedure
     {
-        private static readonly TimeSpan defaultWaitTime = new TimeSpan(0,0,0);
-
         /// <summary>
         /// Retries a procedure up to a given number of attempts.
         /// </summary>
@@ -64,6 +62,7 @@ namespace Hopefully
         /// <param name="what">The procedure to attempt.</param>
         /// <param name="failedAttempts">Set to the number of attempts that failed when retrying.</param>
         /// <param name="attempts">The number of attempts before giving up.</param>
+        /// <param name="wait">The amount of time to wait between failed attempts</param>
         public static void Retry(Action what, out int failedAttempts, int attempts = 5, TimeSpan wait = default(TimeSpan))
         {
             failedAttempts = 0;
@@ -76,7 +75,8 @@ namespace Hopefully
                 }
                 catch(Exception ex)
                 {
-                    attempts = FailedAttempt(ref failedAttempts, attempts, wait, ex);
+                    if(HandleFailedAttempt(ref failedAttempts, ref attempts, wait))
+                        throw;
                 }
             }
         }
@@ -87,6 +87,7 @@ namespace Hopefully
         /// <param name="what">The procedure to attempt.</param>
         /// <param name="failedAttempts">Set to the number of attempts that failed when retrying.</param>
         /// <param name="attempts">The number of attempts before giving up.</param>
+        /// <param name="wait">The amount of time to wait between failed attempts</param>
         /// <typeparam name="T">The return type of the procedure.</typeparam>
         public static T Retry<T>(Func<T> what, out int failedAttempts, int attempts = 5, TimeSpan wait = default(TimeSpan))
         {
@@ -99,20 +100,27 @@ namespace Hopefully
                 }
                 catch(Exception ex)
                 {
-                    attempts = FailedAttempt(ref failedAttempts, attempts, wait, ex);   
+                    if (HandleFailedAttempt(ref failedAttempts, ref attempts, wait))
+                        throw;
                 }
             }
             return default(T); // Never reached
         }
 
-        private static int FailedAttempt(ref int failedAttempts, int attempts, TimeSpan wait, Exception ex)
+        /// <summary>
+        /// Handles the logic when one of the attempts failes
+        /// </summary>
+        /// <param name="failedAttempts">Number of failed attempts so far</param>
+        /// <param name="attempts">Number of overall attempts so far</param>
+        /// <param name="wait">The amount of time to wait between failed attempts</param>>
+        /// <returns>Returns true if we have reached the maximun number of retries and should quit</returns>
+        private static bool HandleFailedAttempt(ref int failedAttempts, ref int attempts, TimeSpan wait)
         {
             attempts--;
             failedAttempts++;
-            if (attempts == 0)
-                throw new ApplicationException("Reached the max number of attempts", ex);
-            System.Threading.Thread.Sleep(wait);
-            return attempts;
+            if (attempts == 0) return true;
+            if(wait.TotalMilliseconds != 0) System.Threading.Thread.Sleep(wait);
+            return false;
         }
     }
 }
