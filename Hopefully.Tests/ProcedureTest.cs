@@ -51,11 +51,27 @@ namespace Hopefully.Tests
         {
             var proc = new UnreliableProcedure(10);
             int failedAttempts = -1;
-            Assert.Throws(typeof(Exception), () =>
+            Assert.Throws(typeof(ApplicationException), () =>
             {
                 Procedure.Retry(() => proc.DoWork(), out failedAttempts, attempts: 5);
             });
             Assert.AreEqual(5, failedAttempts);
+        }
+
+        [Test]
+        public void TestFailedProcedureWithTimeInBetween()
+        {
+            var proc = new UnreliableProcedure(10);
+            int failedAttempts = -1;
+            int milliSecondsToWait = 50;
+            var startTime = DateTime.Now;
+            Assert.Throws(typeof (ApplicationException), () =>
+            {
+                Procedure.Retry(() => proc.DoWork(), out failedAttempts, attempts: 5, wait: new TimeSpan(0, 0, 0, 0, milliSecondsToWait));
+            });
+            var endTime = DateTime.Now;
+            var elapsedTime = endTime - startTime;
+            Assert.GreaterOrEqual(elapsedTime.Milliseconds, milliSecondsToWait * (failedAttempts -1));
         }
 
         [Test]
@@ -84,7 +100,7 @@ namespace Hopefully.Tests
         public void TestFailedAsyncProcedure()
         {
             var proc = new UnreliableProcedure(10);
-            Assert.Throws(typeof(Exception), async () =>
+            Assert.Throws(typeof(ApplicationException), async () =>
             {
                 await Procedure.RetryAsync(proc.DoWork, attempts: 5);
             });
@@ -107,7 +123,7 @@ namespace Hopefully.Tests
             var proc = new UnreliableProcedure(10);
             int failedAttempts = -1;
             string returned = null;
-            Assert.Throws(typeof(Exception), () =>
+            Assert.Throws(typeof(ApplicationException), () =>
             {
                 returned = Procedure.Retry<string>(() => proc.DoWorkAndReturn(), out failedAttempts, attempts: 5);
             });
@@ -160,8 +176,10 @@ namespace Hopefully.Tests
                 }).Result;
             });
 
-            Assert.AreEqual("Procedure failed", exception.InnerException.Message);
+            Assert.AreEqual("Procedure failed", exception.InnerException.InnerException.Message);
             Assert.IsNull(returned);
         }
+
+
     }
 }
