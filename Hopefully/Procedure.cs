@@ -48,11 +48,12 @@ namespace Hopefully
         /// </summary>
         /// <param name="what">The procedure to attempt.</param>
         /// <param name="attempts">The number of attempts before giving up.</param>
+        /// <param name="wait">The time to await between each attempt</param>
         /// <typeparam name="T">The return type of the procedure.</typeparam>
-        public static async Task<T> RetryAsync<T>(Func<T> what, int attempts = 5)
+        public static async Task<T> RetryAsync<T>(Func<T> what, int attempts = 5, TimeSpan wait = default(TimeSpan))
         {
             int _;
-            return await Task.Run<T>(() => Retry(what, out _, attempts));
+            return await Task.Run<T>(() => Retry(what, out _, attempts, wait));
         }
 
         /// <summary>
@@ -61,7 +62,8 @@ namespace Hopefully
         /// <param name="what">The procedure to attempt.</param>
         /// <param name="failedAttempts">Set to the number of attempts that failed when retrying.</param>
         /// <param name="attempts">The number of attempts before giving up.</param>
-        public static void Retry(Action what, out int failedAttempts, int attempts = 5)
+        /// <param name="wait">The amount of time to wait between failed attempts</param>
+        public static void Retry(Action what, out int failedAttempts, int attempts = 5, TimeSpan wait = default(TimeSpan))
         {
             failedAttempts = 0;
             while (attempts > 0)
@@ -71,11 +73,9 @@ namespace Hopefully
                     what();
                     return;
                 }
-                catch
+                catch(Exception ex)
                 {
-                    attempts--;
-                    failedAttempts++;
-                    if (attempts == 0)
+                    if(HandleFailedAttempt(ref failedAttempts, ref attempts, wait))
                         throw;
                 }
             }
@@ -87,8 +87,9 @@ namespace Hopefully
         /// <param name="what">The procedure to attempt.</param>
         /// <param name="failedAttempts">Set to the number of attempts that failed when retrying.</param>
         /// <param name="attempts">The number of attempts before giving up.</param>
+        /// <param name="wait">The amount of time to wait between failed attempts</param>
         /// <typeparam name="T">The return type of the procedure.</typeparam>
-        public static T Retry<T>(Func<T> what, out int failedAttempts, int attempts = 5)
+        public static T Retry<T>(Func<T> what, out int failedAttempts, int attempts = 5, TimeSpan wait = default(TimeSpan))
         {
             failedAttempts = 0;
             while (attempts > 0)
@@ -97,15 +98,29 @@ namespace Hopefully
                 {
                     return what();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    attempts--;
-                    failedAttempts++;
-                    if (attempts == 0)
+                    if (HandleFailedAttempt(ref failedAttempts, ref attempts, wait))
                         throw;
                 }
             }
             return default(T); // Never reached
+        }
+
+        /// <summary>
+        /// Handles the logic when one of the attempts failes
+        /// </summary>
+        /// <param name="failedAttempts">Number of failed attempts so far</param>
+        /// <param name="attempts">Number of overall attempts so far</param>
+        /// <param name="wait">The amount of time to wait between failed attempts</param>>
+        /// <returns>Returns true if we have reached the maximun number of retries and should quit</returns>
+        private static bool HandleFailedAttempt(ref int failedAttempts, ref int attempts, TimeSpan wait)
+        {
+            attempts--;
+            failedAttempts++;
+            if (attempts == 0) return true;
+            if(wait.TotalMilliseconds != 0) System.Threading.Thread.Sleep(wait);
+            return false;
         }
     }
 }

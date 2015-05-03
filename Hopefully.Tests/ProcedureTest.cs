@@ -59,6 +59,22 @@ namespace Hopefully.Tests
         }
 
         [Test]
+        public void TestFailedProcedureWithTimeInBetween()
+        {
+            var proc = new UnreliableProcedure(10);
+            int failedAttempts = -1;
+            int milliSecondsToWait = 50;
+            var startTime = DateTime.Now;
+            Assert.Throws(typeof (Exception), () =>
+            {
+                Procedure.Retry(() => proc.DoWork(), out failedAttempts, attempts: 5, wait: new TimeSpan(0, 0, 0, 0, milliSecondsToWait));
+            });
+            var endTime = DateTime.Now;
+            var elapsedTime = endTime - startTime;
+            Assert.GreaterOrEqual(elapsedTime.Milliseconds, milliSecondsToWait * (failedAttempts -1));
+        }
+
+        [Test]
         public void TestSuccessAfterFailure()
         {
             var proc = new UnreliableProcedure(3);
@@ -163,5 +179,7 @@ namespace Hopefully.Tests
             Assert.AreEqual("Procedure failed", exception.InnerException.Message);
             Assert.IsNull(returned);
         }
+
+
     }
 }
